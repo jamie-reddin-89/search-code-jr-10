@@ -1,4 +1,6 @@
 import { useState } from "react";
+import * as React from "react";
+const { useState } = React;
 import { Calculator } from "lucide-react";
 import { Button } from "./ui/button";
 import {
