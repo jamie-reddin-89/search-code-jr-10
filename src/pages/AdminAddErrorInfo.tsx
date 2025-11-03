@@ -1,4 +1,6 @@
 import { useState } from "react";
+import * as React from "react";
+const { useState } = React;
 import { Link } from "react-router-dom";
 import { Home, ArrowLeft, FilePlus2, Save } from "lucide-react";
 import TopRightControls from "@/components/TopRightControls";
