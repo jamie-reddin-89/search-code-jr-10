@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import * as React from "react";
+const { } = React;
 import { Link, useLocation } from "react-router-dom";
 import TopRightControls from "@/components/TopRightControls";
 import { useErrorCodes } from "@/hooks/useErrorCodes";
