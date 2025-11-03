@@ -121,7 +121,7 @@ export default function AdminAddDevice() {
                 onClick={() => handleOpenDialog(type as any)}
               >
                 <Plus size={20} />
-                + {getTypeLabel(type)}
+                {getTypeLabel(type)}
               </button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
