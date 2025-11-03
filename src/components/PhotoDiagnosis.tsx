@@ -210,72 +210,195 @@ export const PhotoDiagnosis = () => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" size="icon" aria-label="Upload photo for diagnosis">
           <Camera className="h-5 w-5" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Photo Diagnosis</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="border-2 border-dashed rounded-lg p-8 text-center">
-            {preview ? (
-              <img
-                src={preview}
-                alt="Preview"
-                className="max-h-64 mx-auto rounded"
-              />
-            ) : (
-              <div className="space-y-2">
-                <Camera className="h-12 w-12 mx-auto text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  Upload a photo of the equipment
-                </p>
+          {mode === "select" && (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Position your heat pump equipment in the camera and capture a clear photo for analysis.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={() => setMode("camera")}
+                  className="flex flex-col gap-2 h-auto py-4"
+                >
+                  <Camera className="h-6 w-6" />
+                  <span>Take Photo</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => document.getElementById("photo-input")?.click()}
+                  className="flex flex-col gap-2 h-auto py-4"
+                >
+                  <Upload className="h-6 w-6" />
+                  <span>Upload Photo</span>
+                </Button>
               </div>
-            )}
-          </div>
+              <input
+                id="photo-input"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+            </>
+          )}
 
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => document.getElementById("photo-input")?.click()}
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              Select Photo
-            </Button>
-            <input
-              id="photo-input"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileSelect}
-            />
-            <Button
-              onClick={analyzePhoto}
-              disabled={!selectedFile || isAnalyzing}
-              className="flex-1"
-            >
-              {isAnalyzing ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Analyzing...
-                </>
-              ) : (
-                "Analyze Photo"
+          {mode === "camera" && (
+            <>
+              <div className="relative bg-black rounded-lg overflow-hidden">
+                {cameraActive ? (
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    className="w-full aspect-video object-cover"
+                  />
+                ) : (
+                  <div className="w-full aspect-video bg-gray-800 flex items-center justify-center">
+                    <Camera className="h-12 w-12 text-gray-600" />
+                  </div>
+                )}
+              </div>
+              <canvas ref={canvasRef} className="hidden" />
+              <Button
+                onClick={capturePhoto}
+                disabled={!cameraActive}
+                className="w-full"
+                size="lg"
+              >
+                <Camera className="mr-2 h-4 w-4" />
+                Capture Photo
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (videoRef.current?.srcObject) {
+                    const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+                    tracks.forEach((track) => track.stop());
+                  }
+                  setMode("select");
+                }}
+              >
+                Back
+              </Button>
+            </>
+          )}
+
+          {mode === "preview" && (
+            <>
+              <div className="relative bg-gray-100 rounded-lg overflow-hidden">
+                <img
+                  src={preview}
+                  alt="Captured equipment"
+                  className="w-full h-auto"
+                />
+              </div>
+
+              {isAnalyzing && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Analyzing image...</span>
+                    <span>{Math.round(progress)}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
               )}
-            </Button>
-          </div>
 
-          {analysis && (
-            <Card className="p-4">
-              <h3 className="font-semibold mb-2">AI Analysis:</h3>
-              <p className="text-sm whitespace-pre-wrap">{analysis}</p>
-            </Card>
+              {analysis ? (
+                <Card className="p-4 space-y-3">
+                  <div className="p-3 bg-green-50 dark:bg-green-950 rounded border border-green-200 dark:border-green-800">
+                    <h3 className="font-semibold text-green-900 dark:text-green-100">
+                      ✓ {analysis.equipment}
+                    </h3>
+                    <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+                      Confidence: {(analysis.confidence * 100).toFixed(0)}%
+                    </p>
+                  </div>
+
+                  {analysis.issues?.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2">Potential Issues:</h4>
+                      <ul className="space-y-1">
+                        {analysis.issues.map((issue: string, i: number) => (
+                          <li key={i} className="text-sm flex gap-2">
+                            <span className="text-red-500">•</span>
+                            <span>{issue}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {analysis.recommendations?.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2">Recommendations:</h4>
+                      <ul className="space-y-1">
+                        {analysis.recommendations.map((rec: string, i: number) => (
+                          <li key={i} className="text-sm flex gap-2">
+                            <span className="text-blue-500">→</span>
+                            <span>{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </Card>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    onClick={retakePhoto}
+                    variant="outline"
+                    disabled={isAnalyzing}
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Retake
+                  </Button>
+                  <Button
+                    onClick={analyzePhoto}
+                    disabled={isAnalyzing}
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Analyze
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {analysis && (
+                <Button
+                  onClick={retakePhoto}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  New Photo
+                </Button>
+              )}
+            </>
           )}
         </div>
       </DialogContent>
