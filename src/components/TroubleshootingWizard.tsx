@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Lightbulb, ArrowRight, ArrowLeft } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Lightbulb, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 import {
   Dialog,
@@ -11,8 +11,16 @@ import {
 import { Label } from "./ui/label";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Card } from "./ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { getAllBrands, getBrandModels, type Brand, type Device } from "@/lib/deviceManager";
 
-const wizardSteps = [
+const basicWizardSteps = [
   {
     question: "What type of issue are you experiencing?",
     options: [
@@ -48,6 +56,43 @@ export const TroubleshootingWizard = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [diagnosis, setDiagnosis] = useState("");
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [models, setModels] = useState<Device[]>([]);
+  const [selectedBrand, setSelectedBrand] = useState<string>("");
+  const [selectedModel, setSelectedModel] = useState<string>("");
+  const [loadingBrands, setLoadingBrands] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadBrands();
+    }
+  }, [isOpen]);
+
+  const loadBrands = async () => {
+    setLoadingBrands(true);
+    try {
+      const allBrands = await getAllBrands();
+      setBrands(allBrands);
+    } catch (err) {
+      console.error("Error loading brands:", err);
+    } finally {
+      setLoadingBrands(false);
+    }
+  };
+
+  const handleBrandChange = async (brandId: string) => {
+    setSelectedBrand(brandId);
+    setSelectedModel("");
+    setModels([]);
+    if (brandId) {
+      try {
+        const brandModels = await getBrandModels(brandId);
+        setModels(brandModels);
+      } catch (err) {
+        console.error("Error loading models:", err);
+      }
+    }
+  };
 
   const handleNext = () => {
     if (currentStep < wizardSteps.length - 1) {
