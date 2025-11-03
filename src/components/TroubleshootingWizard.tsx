@@ -164,26 +164,74 @@ export const TroubleshootingWizard = () => {
           <Lightbulb className="h-5 w-5" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Troubleshooting Wizard</DialogTitle>
         </DialogHeader>
 
         {!diagnosis ? (
           <div className="space-y-6">
+            <div className="space-y-3 border-b pb-4">
+              <h3 className="font-semibold text-sm">Equipment Information (Optional)</h3>
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">
+                  Brand
+                </Label>
+                <Select value={selectedBrand} onValueChange={handleBrandChange}>
+                  <SelectTrigger className="text-sm">
+                    {loadingBrands ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading brands...
+                      </span>
+                    ) : (
+                      <SelectValue placeholder="Select brand" />
+                    )}
+                  </SelectTrigger>
+                  <SelectContent>
+                    {brands.map((brand) => (
+                      <SelectItem key={brand.id} value={brand.id}>
+                        {brand.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {selectedBrand && models.length > 0 && (
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">
+                    Model
+                  </Label>
+                  <Select value={selectedModel} onValueChange={setSelectedModel}>
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Select model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {models.map((model) => (
+                        <SelectItem key={model.id} value={model.id}>
+                          {model.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
             <div className="flex justify-between items-center text-sm text-muted-foreground">
               <span>
-                Step {currentStep + 1} of {wizardSteps.length}
+                Step {currentStep + 1} of {basicWizardSteps.length}
               </span>
             </div>
 
             <div className="space-y-4">
-              <h3 className="font-medium">{wizardSteps[currentStep].question}</h3>
+              <h3 className="font-medium">{basicWizardSteps[currentStep].question}</h3>
               <RadioGroup
                 value={answers[currentStep]}
                 onValueChange={handleAnswerChange}
               >
-                {wizardSteps[currentStep].options.map((option) => (
+                {basicWizardSteps[currentStep].options.map((option) => (
                   <div key={option.value} className="flex items-center space-x-2">
                     <RadioGroupItem value={option.value} id={option.value} />
                     <Label
@@ -210,7 +258,7 @@ export const TroubleshootingWizard = () => {
                 onClick={handleNext}
                 disabled={!answers[currentStep]}
               >
-                {currentStep === wizardSteps.length - 1 ? "Get Diagnosis" : "Next"}
+                {currentStep === basicWizardSteps.length - 1 ? "Get Diagnosis" : "Next"}
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
