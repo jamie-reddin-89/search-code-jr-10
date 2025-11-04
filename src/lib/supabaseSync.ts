@@ -25,7 +25,7 @@ export async function syncEvents() {
         ...e.meta
       } || null,
     }));
-    await (supabase as any).from("app_analytics" as any).insert(payload);
+    await retryWithBackoff(() => (supabase as any).from("app_analytics" as any).insert(payload), 3, 500);
     writeLS(LS_EVENTS, []);
   } catch (err) {
     // keep in queue on failure - silently fail to prevent app crash
