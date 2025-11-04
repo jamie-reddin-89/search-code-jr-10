@@ -1,4 +1,4 @@
-# [Error Code Search Application](https://jayreddin.github.io/error-code-navigator-54/#/)
+# [JR - Error - Codes](https://jamie-reddin-89.github.io/search-code-jr-10/)
 
 A responsive web application for searching error codes across different systems. Features a clean, minimal design with dark/light mode support.
 
