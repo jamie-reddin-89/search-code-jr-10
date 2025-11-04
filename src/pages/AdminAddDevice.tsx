@@ -126,7 +126,7 @@ export default function AdminAddDevice() {
 
   const loadBrands = async () => {
     try {
-      const { data } = await supabase.from("brands" as any).select("*");
+      const { data } = await supabase.from("public.brands" as any).select("*");
       setBrands(data || []);
     } catch (error) {
       console.error("Error loading brands:", error);
