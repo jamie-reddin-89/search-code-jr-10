@@ -55,6 +55,14 @@ export default function AdminUsers() {
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
+    email: "",
+    password: "",
+    fullName: "",
+    role: "user" as "user" | "moderator" | "admin",
+  });
+  const [creatingUser, setCreatingUser] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
