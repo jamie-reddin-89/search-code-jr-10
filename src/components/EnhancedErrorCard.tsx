@@ -100,7 +100,7 @@ export function EnhancedErrorCard({
             <CardDescription className="mt-2 text-base">{meaning}</CardDescription>
           </div>
           <div className="flex gap-2">
-            {isAdmin && (
+            {(isAdmin || isModerator) && (
               <Button
                 variant="ghost"
                 size="icon"
