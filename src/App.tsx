@@ -52,7 +52,8 @@ const App = () => (
           <Sonner />
           <InstallPrompt />
           <AIAssistant />
-          <HashRouter>
+          <ErrorBoundary>
+            <HashRouter>
             <AnalyticsListener />
             <SyncBridge />
             <Routes>
@@ -72,7 +73,8 @@ const App = () => (
                 <Route key={index} path={route.path} element={route.element} />
               ))}
             </Routes>
-          </HashRouter>
+            </HashRouter>
+          </ErrorBoundary>
         </TooltipToggleProvider>
       </TooltipProvider>
     </ThemeProvider>
