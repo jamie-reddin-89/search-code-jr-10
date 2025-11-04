@@ -1,8 +1,8 @@
 # Implementation Plan (Admin + App-wide Enhancements)
 
 Owner: Admin (jayjay.r@outlook.com)
-Current version (Settings > About): 1.9.2
-Target version after implementation: 1.9.2
+Current version (Settings > About): 1.9.3
+Target version after implementation: 1.9.3
 
 Legend: [ ] pending • [x] complete • [~] partial
 
@@ -49,9 +49,9 @@ Phase 5 — UI consistency, themes, scrollbars
 - [ ] Verify light: light background + dark text; dark: dark background + light text; fix outliers
 
 Phase 6 — Dynamic device subpages and per-model codes
-- [ ] Add route /device/:slug in src/App.tsx
-- [ ] Create src/pages/DevicePage.tsx that loads by slug via getDeviceBySlug() and lists codes
-- [ ] Index links: brand+model buttons -> /device/:slug and subscribe to realtime updates
+- [x] Add route /device/:slug in src/App.tsx
+- [x] Create src/pages/DevicePage.tsx that loads by slug via getDeviceBySlug() and lists codes
+- [x] Index links: brand+model buttons -> /device/:slug and subscribe to realtime updates
 - [ ] Optional: extend error_codes_db with brand_id/model_id; DevicePage filters by model_id
 
 Phase 7 — Settings improvements
