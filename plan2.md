@@ -1,8 +1,8 @@
 # Implementation Plan (Admin + App-wide Enhancements)
 
 Owner: Admin (jayjay.r@outlook.com)
-Current version (Settings > About): 1.9.1
-Target version after implementation: 1.9.1
+Current version (Settings > About): 1.9.2
+Target version after implementation: 1.9.2
 
 Legend: [ ] pending • [x] complete • [~] partial
 
@@ -15,12 +15,12 @@ Phase 0 — Prerequisites and Access
   - [x] error_codes_db brand_id/model_id columns + index (optional but recommended)
 
 Phase 1 — Admin insert flows + app-wide propagation
-- [ ] AdminAddDevice inserts into brands/models/categories/tags/media/urls (src/pages/AdminAddDevice.tsx)
-- [ ] Add realtime subscriptions for categories/tags/media/urls (deviceManager.subscribe pattern)
-- [ ] Replace hardcoded systemNames in Admin error-code form with dynamic model list from Supabase (src/pages/Admin.tsx)
-- [ ] Use generateRouteSlug(brand, model) or model.id as value; label “Brand — Model”
-- [ ] Make home buttons dynamic from brands/models (src/pages/Index.tsx), remove buttonNames array
-- [ ] Verify new items appear app-wide in real time without refresh
+- [x] AdminAddDevice inserts into brands/models/categories/tags/media/urls (src/pages/AdminAddDevice.tsx)
+- [x] Add realtime subscriptions for categories/tags/media/urls (deviceManager.subscribe pattern)
+- [x] Replace hardcoded systemNames in Admin error-code form with dynamic model list from Supabase (src/pages/Admin.tsx)
+- [x] Use generateRouteSlug(brand, model) or model.id as value; label “Brand — Model”
+- [x] Make home buttons dynamic from brands/models (src/pages/Index.tsx), remove buttonNames array
+- [x] Verify new items appear app-wide in real time without refresh
 
 Phase 2 — Users list shows all signed-up users
 - [ ] Create Edge Function admin-users to fetch Auth users via Admin API with admin check
@@ -89,7 +89,7 @@ Phase 10 — Performance and quality
 - [ ] Add correlation ID to logs/analytics; include device info in analytics meta
 
 Release Tasks
-- [x] Update Settings > About version text to 1.9.1
+- [x] Update Settings > About version text to 1.9.2
 - [ ] Smoke test all admin pages and public views (light/dark)
 - [ ] Verify RLS and permissions with a non-admin account
 
