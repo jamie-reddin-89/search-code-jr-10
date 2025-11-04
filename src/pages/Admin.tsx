@@ -57,13 +57,14 @@ interface ErrorCode {
 }
 
 export default function Admin() {
-  const { isAdmin, loading } = useUserRole();
+  const { isAdmin, isModerator, loading } = useUserRole();
   const [errorCodes, setErrorCodes] = useState<ErrorCode[]>([]);
   const [editingCode, setEditingCode] = useState<ErrorCode | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [devices, setDevices] = useState<DeviceWithBrand[]>([]);
   const [devicesLoading, setDevicesLoading] = useState(true);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (isAdmin) {
