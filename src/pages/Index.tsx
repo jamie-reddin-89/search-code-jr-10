@@ -11,6 +11,20 @@ import { CostEstimator } from "@/components/CostEstimator";
 import { Tooltip } from "@/components/Tooltip";
 import { getAllDevices, subscribeToDevices, generateRouteSlug, type DeviceWithBrand } from "@/lib/deviceManager";
 
+const FALLBACK_BUTTONS = [
+  "Joule Victorum",
+  "Joule Samsung",
+  "Joule Modular Air",
+  "DeDietrich Strateo",
+  "LG Thermia",
+  "Hitachi Yutaki",
+  "Panasonic Aquarea",
+  "Grant Areona",
+  "Itec Thermia",
+  "Smart Control",
+  "System Status",
+];
+
 const Index = () => {
   const { isAdmin } = useUserRole();
   const [devices, setDevices] = useState<DeviceWithBrand[]>([]);
@@ -47,17 +61,27 @@ const Index = () => {
             </Link>
           </Tooltip>
 
-          {devices.map((d) => {
-            const name = `${d.brand?.name || "Unknown Brand"} — ${d.name}`;
-            const slug = generateRouteSlug(d.brand?.name || "", d.name);
-            return (
-              <Tooltip key={d.id} content={`Open ${name} page`}>
-                <Link to={`/device/${slug}`} className="nav-button">
+          {devices.length > 0 ? (
+            devices.map((d) => {
+              const name = `${d.brand?.name || "Unknown Brand"} — ${d.name}`;
+              const slug = generateRouteSlug(d.brand?.name || "", d.name);
+              return (
+                <Tooltip key={d.id} content={`Open ${name} page`}>
+                  <Link to={`/device/${slug}`} className="nav-button">
+                    {name}
+                  </Link>
+                </Tooltip>
+              );
+            })
+          ) : (
+            FALLBACK_BUTTONS.map((name) => (
+              <Tooltip key={name} content={`Open ${name} page`}>
+                <Link to={`/${name.toLowerCase().replace(/\s+/g, "-")}`} className="nav-button">
                   {name}
                 </Link>
               </Tooltip>
-            );
-          })}
+            ))
+          )}
 
           {isAdmin && (
             <Tooltip content="Open admin dashboard">
