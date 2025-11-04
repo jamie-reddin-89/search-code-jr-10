@@ -74,7 +74,7 @@ export async function getAllDevices(): Promise<DeviceWithBrand[]> {
 export async function getDevice(modelId: string): Promise<DeviceWithBrand | null> {
   try {
     const { data: model, error: modelError } = await supabase
-      .from("models" as any)
+      .from("public.models" as any)
       .select("*")
       .eq("id", modelId)
       .single();
@@ -83,7 +83,7 @@ export async function getDevice(modelId: string): Promise<DeviceWithBrand | null
     if (!model) return null;
 
     const { data: brand, error: brandError } = await supabase
-      .from("brands" as any)
+      .from("public.brands" as any)
       .select("*")
       .eq("id", model.brand_id)
       .single();
@@ -178,7 +178,7 @@ export async function getDeviceErrorCodes(modelId: string): Promise<any[]> {
 export async function getAllBrands(): Promise<Brand[]> {
   try {
     const { data, error } = await supabase
-      .from("brands" as any)
+      .from("public.brands" as any)
       .select("*")
       .order("name", { ascending: true });
 
@@ -196,7 +196,7 @@ export async function getAllBrands(): Promise<Brand[]> {
 export async function getBrandModels(brandId: string): Promise<Device[]> {
   try {
     const { data, error } = await supabase
-      .from("models" as any)
+      .from("public.models" as any)
       .select("*")
       .eq("brand_id", brandId)
       .order("name", { ascending: true });
