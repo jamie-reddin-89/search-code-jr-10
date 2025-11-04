@@ -1,8 +1,8 @@
 # Implementation Plan (Admin + App-wide Enhancements)
 
 Owner: Admin (jayjay.r@outlook.com)
-Current version (Settings > About): 1.9.10
-Target version after implementation: 1.9.11
+Current version (Settings > About): 1.9.15
+Target version after implementation: 1.9.16
 
 Legend: [ ] pending • [x] complete • [~] partial
 
@@ -85,12 +85,12 @@ Phase 10 — Performance and quality
 - [x] Code-split heavy charts/pages; lazy-load — completed
 - [x] Add retry/backoff for logging/analytics writes
 - [x] Add PWA SW for offline caching of codes and background sync
-- [ ] Fuzzy search in error_codes_db; CSV import/export of error codes
-- [ ] Granular RBAC (moderator scope)
-- [ ] Add correlation ID to logs/analytics; include device info in analytics meta
+- [x] Fuzzy search in error_codes_db; CSV import/export of error codes
+- [x] Granular RBAC (moderator scope)
+- [x] Add correlation ID to logs/analytics; include device info in analytics meta
 
 Release Tasks
-- [x] Update Settings > About version text to 1.9.10
+- [x] Update Settings > About version text to 1.9.15
 - [ ] Smoke test all admin pages and public views (light/dark)
 - [ ] Verify RLS and permissions with a non-admin account
 
