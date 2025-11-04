@@ -1,8 +1,8 @@
 # Implementation Plan (Admin + App-wide Enhancements)
 
 Owner: Admin (jayjay.r@outlook.com)
-Current version (Settings > About): 1.9.8
-Target version after implementation: 1.9.8
+Current version (Settings > About): 1.9.9
+Target version after implementation: 1.9.9
 
 Legend: [ ] pending • [x] complete • [~] partial
 
