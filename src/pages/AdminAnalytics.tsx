@@ -37,10 +37,32 @@ export default function AdminAnalytics() {
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [recentEvents, setRecentEvents] = useState<AnalyticsEvent[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     loadAnalytics();
+
+    const subscription = subscribeToAnalytics((newEvent: AnalyticsEvent) => {
+      setRecentEvents((prev) => {
+        const updated = [newEvent, ...prev].slice(0, 100);
+        return updated;
+      });
+
+      if (!startDate && !endDate) {
+        setStats((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            totalPageViews: prev.totalPageViews + 1,
+          };
+        });
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const loadAnalytics = async () => {
@@ -57,6 +79,7 @@ export default function AdminAnalytics() {
 
       const analyticsData = await getAnalyticsStats(filters);
       setStats(analyticsData);
+      setRecentEvents([]);
     } catch (error: any) {
       console.error("Error loading analytics:", error);
       toast({
