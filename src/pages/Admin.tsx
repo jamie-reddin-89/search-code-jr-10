@@ -236,6 +236,10 @@ export default function Admin() {
           <Users size={20} />
           Users
         </Link>
+        <Link to="/admin/messages" className="nav-button flex items-center justify-center gap-2">
+          <Mail size={20} />
+          Messages
+        </Link>
         <Link to="/admin/analytics" className="nav-button flex items-center justify-center gap-2">
           <BarChart3 size={20} />
           Analytics
