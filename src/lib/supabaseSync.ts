@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getEvents, getLogs } from "@/lib/tracking";
+import { retryWithBackoff } from "./retry";
 
 const LS_EVENTS = "jr_user_events";
 const LS_FIX_STEPS = "jr_fix_steps";
