@@ -229,3 +229,35 @@ export async function trackErrorCodeView(
 ): Promise<void> {
   return trackEvent("error_code_view", undefined, { errorCode: code, systemName });
 }
+
+/**
+ * Subscribe to real-time analytics updates
+ */
+export function subscribeToAnalytics(
+  onNewEvent: (event: AnalyticsEvent) => void
+): { unsubscribe: () => Promise<void> } {
+  const channel = supabase.channel("analytics-updates", {
+    config: {
+      broadcast: { self: true },
+    },
+  });
+
+  channel.on(
+    "postgres_changes",
+    {
+      event: "INSERT",
+      schema: "public",
+      table: "app_analytics",
+    },
+    (payload: any) => {
+      const newEvent: AnalyticsEvent = payload.new as AnalyticsEvent;
+      onNewEvent(newEvent);
+    }
+  ).subscribe();
+
+  return {
+    unsubscribe: async () => {
+      await supabase.removeChannel(channel);
+    },
+  };
+}
