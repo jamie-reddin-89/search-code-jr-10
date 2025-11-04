@@ -37,7 +37,12 @@ export default function AnalyticsListener() {
     document.addEventListener("click", onClick);
     const onError = (event: ErrorEvent) => {
       try {
-        log("Error", event.message, { filename: event.filename, lineno: event.lineno, colno: event.colno });
+        const meta = {
+          filename: event.filename,
+          lineno: event.lineno,
+          colno: event.colno,
+        };
+        logError(event.message, event.error, meta);
       } catch (error) {
         // Silently fail - logging is non-critical
         console.debug("Error logging failed (non-critical):", error);
@@ -45,7 +50,7 @@ export default function AnalyticsListener() {
     };
     const onRejection = (event: PromiseRejectionEvent) => {
       try {
-        log("Error", String(event.reason));
+        logError("Unhandled Promise Rejection", event.reason);
       } catch (error) {
         // Silently fail - logging is non-critical
         console.debug("Error logging failed (non-critical):", error);
