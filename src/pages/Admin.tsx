@@ -332,7 +332,7 @@ export default function Admin() {
     );
   }
 
-  if (!isAdmin) {
+  if (!(isAdmin || isModerator)) {
     return (
       <div className="page-container">
         <div className="flex flex-col items-center justify-center min-h-screen gap-4">
@@ -363,35 +363,38 @@ export default function Admin() {
       </header>
 
       <div className="button-container">
-        <Link to="/admin/users" className="nav-button flex items-center justify-center gap-2">
-          <Users size={20} />
-          Users
-        </Link>
-        <Link to="/admin/messages" className="nav-button flex items-center justify-center gap-2">
-          <Mail size={20} />
-          Messages
-        </Link>
-        <Link to="/admin/analytics" className="nav-button flex items-center justify-center gap-2">
-          <BarChart3 size={20} />
-          Analytics
-        </Link>
-        <Link to="/admin/fix-steps" className="nav-button flex items-center justify-center gap-2">
-          <Wrench size={20} />
-          Fix Steps
-        </Link>
-        <Link to="/admin/app-logs" className="nav-button flex items-center justify-center gap-2">
-          <ScrollText size={20} />
-          App Logs
-        </Link>
-        <Link to="/admin/add-device" className="nav-button flex items-center justify-center gap-2">
-          <Package size={20} />
-          Add Device
-        </Link>
+        {isAdmin && (
+          <>
+            <Link to="/admin/users" className="nav-button flex items-center justify-center gap-2">
+              <Users size={20} />
+              Users
+            </Link>
+            <Link to="/admin/messages" className="nav-button flex items-center justify-center gap-2">
+              <Mail size={20} />
+              Messages
+            </Link>
+            <Link to="/admin/analytics" className="nav-button flex items-center justify-center gap-2">
+              <BarChart3 size={20} />
+              Analytics
+            </Link>
+            <Link to="/admin/fix-steps" className="nav-button flex items-center justify-center gap-2">
+              <Wrench size={20} />
+              Fix Steps
+            </Link>
+            <Link to="/admin/app-logs" className="nav-button flex items-center justify-center gap-2">
+              <ScrollText size={20} />
+              App Logs
+            </Link>
+            <Link to="/admin/add-device" className="nav-button flex items-center justify-center gap-2">
+              <Package size={20} />
+              Add Device
+            </Link>
+          </>
+        )}
         <Link to="/admin/add-error-info" className="nav-button flex items-center justify-center gap-2">
           <FilePlus2 size={20} />
           Add Error Info
         </Link>
-        {/* Device quick-links removed from Admin dashboard — these belong on the public main UI to avoid cluttering admin controls */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <button className="nav-button flex items-center justify-center gap-2" onClick={() => setEditingCode(null)}>
@@ -412,6 +415,23 @@ export default function Admin() {
             />
           </DialogContent>
         </Dialog>
+        <button className="nav-button flex items-center justify-center gap-2" onClick={handleExportCSV}>
+          <Download size={20} /> Export CSV
+        </button>
+        <button className="nav-button flex items-center justify-center gap-2" onClick={handleImportCSV}>
+          <Upload size={20} /> Import CSV
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv,text/csv"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) handleImportCSVFile(f);
+            e.currentTarget.value = "";
+          }}
+        />
       </div>
 
       <div className="w-full max-w-xl mt-8 grid gap-4">
@@ -446,14 +466,16 @@ export default function Admin() {
               >
                 <Edit className="h-4 w-4" />
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDelete(code.id)}
-                aria-label="Delete error code"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              {isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleDelete(code.id)}
+                  aria-label="Delete error code"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         ))}
