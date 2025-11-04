@@ -2,16 +2,15 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export function useUserRole() {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState<"admin" | "moderator" | "user">("user");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function checkRole() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        
         if (!user) {
-          setIsAdmin(false);
+          setRole("user");
           setLoading(false);
           return;
         }
@@ -20,18 +19,19 @@ export function useUserRole() {
           .from("user_roles" as any)
           .select("role")
           .eq("user_id", user.id)
-          .eq("role", "admin")
+          .limit(1)
           .maybeSingle();
 
         if (error) {
           console.error("Error checking role:", error);
-          setIsAdmin(false);
+          setRole("user");
         } else {
-          setIsAdmin(!!data);
+          const r = (data?.role as any) || "user";
+          setRole(r === "admin" || r === "moderator" ? r : "user");
         }
       } catch (error) {
         console.error("Error in checkRole:", error);
-        setIsAdmin(false);
+        setRole("user");
       } finally {
         setLoading(false);
       }
@@ -48,5 +48,7 @@ export function useUserRole() {
     };
   }, []);
 
-  return { isAdmin, loading };
+  const isAdmin = role === "admin";
+  const isModerator = role === "moderator";
+  return { role, isAdmin, isModerator, loading };
 }
