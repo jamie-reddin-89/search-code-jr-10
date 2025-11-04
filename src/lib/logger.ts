@@ -21,12 +21,14 @@ export async function logInfo(
     const {
       data: { user },
     } = await supabase.auth.getUser();
+    const { getCorrelationId, getDeviceInfo } = await import("@/lib/correlation");
+    const stack = { ...(meta || {}), correlationId: getCorrelationId(), device: getDeviceInfo() };
 
     await supabase.from("app_logs" as any).insert([
       {
         level: "info",
         message,
-        stack_trace: meta || null,
+        stack_trace: stack,
         user_id: user?.id || null,
         page_path: window.location.pathname,
         timestamp: new Date().toISOString(),
@@ -48,12 +50,14 @@ export async function logWarn(
     const {
       data: { user },
     } = await supabase.auth.getUser();
+    const { getCorrelationId, getDeviceInfo } = await import("@/lib/correlation");
+    const stack = { ...(meta || {}), correlationId: getCorrelationId(), device: getDeviceInfo() };
 
     await supabase.from("app_logs" as any).insert([
       {
         level: "warn",
         message,
-        stack_trace: meta || null,
+        stack_trace: stack,
         user_id: user?.id || null,
         page_path: window.location.pathname,
         timestamp: new Date().toISOString(),
@@ -78,15 +82,19 @@ export async function logError(
     } = await supabase.auth.getUser();
 
     const stackTrace = error instanceof Error ? error.stack : String(error);
+    const { getCorrelationId, getDeviceInfo } = await import("@/lib/correlation");
+    const stack = {
+      error: stackTrace,
+      ...(meta || {}),
+      correlationId: getCorrelationId(),
+      device: getDeviceInfo(),
+    };
 
     await supabase.from("app_logs" as any).insert([
       {
         level: "error",
         message,
-        stack_trace: {
-          error: stackTrace,
-          ...meta,
-        },
+        stack_trace: stack,
         user_id: user?.id || null,
         page_path: window.location.pathname,
         timestamp: new Date().toISOString(),
