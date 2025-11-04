@@ -40,6 +40,7 @@ Phase 4 — Analytics capture + Admin analytics
 - [x] Switch AnalyticsListener to lib/analytics.trackEvent/trackPageView/trackClick (src/components/AnalyticsListener.tsx)
 - [x] Search tracking writes to search_analytics (present) and should also call lib/analytics.trackEvent("search") (src/hooks/useAnalytics.ts) — verify
 - [x] Ensure AdminAnalytics uses getAnalyticsStats (already) and events flow end-to-end
+- [x] Added real-time subscriptions (subscribeToAnalytics) and live events display in AdminAnalytics
 - [~] Optional: record user_sessions/user_activity on login/logout/page views
 
 Phase 5 — UI consistency, themes, scrollbars
