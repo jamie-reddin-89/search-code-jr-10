@@ -17,7 +17,6 @@ import { Input } from "./ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ContactForm from '@/components/ContactForm';
-import { CONTACT_EMAIL } from '@/lib/config';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { getAllDevices, generateRouteSlug } from "@/lib/deviceManager";
 
