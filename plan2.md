@@ -2,7 +2,7 @@
 
 Owner: Admin (jayjay.r@outlook.com)
 Current version (Settings > About): 1.9.10
-Target version after implementation: 1.9.10
+Target version after implementation: 1.9.11
 
 Legend: [ ] pending • [x] complete • [~] partial
 
@@ -70,10 +70,10 @@ About tab
 - [x] Move Contact button to top row actions near title
 
 Phase 8 — Messages admin page
-- [ ] Edge function contact-send sends email; can store to contact_messages with service role
-- [ ] Create src/pages/AdminMessages.tsx to list contact_messages with filters and details
-- [ ] Add route /admin/messages and nav button in Admin dashboard (src/pages/Admin.tsx)
-- [ ] Add realtime subscription on contact_messages to live-update list
+- [x] Edge function contact-send sends email; can store to contact_messages with service role
+- [x] Create src/pages/AdminMessages.tsx to list contact_messages with filters and details
+- [x] Add route /admin/messages and nav button in Admin dashboard (src/pages/Admin.tsx)
+- [x] Add realtime subscription on contact_messages to live-update list
 
 Phase 9 — Integrations (optional but recommended)
 - [ ] Connect Supabase MCP for DB/auth management and RLS reviews
@@ -82,8 +82,8 @@ Phase 9 — Integrations (optional but recommended)
 - [ ] Connect Zapier to route contact_messages to Slack/Email
 
 Phase 10 — Performance and quality
-- [ ] Code-split heavy charts/pages; lazy-load
-- [ ] Add retry/backoff for logging/analytics writes
+- [x] Code-split heavy charts/pages; lazy-load — completed
+- [x] Add retry/backoff for logging/analytics writes
 - [ ] Add PWA SW for offline caching of codes and background sync
 - [ ] Fuzzy search in error_codes_db; CSV import/export of error codes
 - [ ] Granular RBAC (moderator scope)
