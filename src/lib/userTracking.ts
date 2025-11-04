@@ -264,6 +264,31 @@ export async function resetUserPassword(email: string): Promise<boolean> {
  */
 export async function getAllUsers(): Promise<any[]> {
   try {
+    // Try to call the admin-users edge function first
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData?.session?.access_token) {
+      try {
+        const supabaseUrl = new URL(import.meta.env.VITE_SUPABASE_URL);
+        const functionUrl = `${supabaseUrl.protocol}//${supabaseUrl.hostname}/functions/v1/admin-users`;
+
+        const response = await fetch(functionUrl, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${sessionData.session.access_token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          return data.users || [];
+        }
+      } catch (error) {
+        console.warn("Error calling admin-users function, falling back to user_roles:", error);
+      }
+    }
+
+    // Fallback to user_roles table
     const { data, error } = await supabase
       .from("user_roles" as any)
       .select("*")
