@@ -323,6 +323,7 @@ function ErrorCodeForm({
   errorCode,
   onSave,
   onCancel,
+  devices,
 }: {
   errorCode: ErrorCode | null;
   onSave: (data: any) => void;
