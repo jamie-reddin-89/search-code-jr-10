@@ -1,7 +1,6 @@
 import { useEffect } from "react";
-import { trackEvent } from "@/lib/tracking";
+import { trackPageView, trackClick } from "@/lib/analytics";
 import { useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 
 export default function AnalyticsListener() {
@@ -10,10 +9,9 @@ export default function AnalyticsListener() {
   useEffect(() => {
     const trackPV = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        await trackEvent("page_view", undefined, location.pathname + location.hash, session?.user?.id || null);
+        const path = location.pathname + location.hash;
+        await trackPageView(path);
       } catch (error) {
-        // Silently fail - analytics is non-critical
         console.debug("Analytics tracking failed (non-critical):", error);
       }
     };
@@ -27,10 +25,9 @@ export default function AnalyticsListener() {
         const btn = target.closest(".nav-button, button, a") as HTMLElement | null;
         if (btn) {
           const label = (btn.getAttribute("aria-label") || btn.textContent || "").trim().slice(0, 100);
-          await trackEvent("element_click", { label });
+          await trackClick(label);
         }
       } catch (error) {
-        // Silently fail - analytics is non-critical
         console.debug("Click tracking failed (non-critical):", error);
       }
     };
@@ -44,7 +41,6 @@ export default function AnalyticsListener() {
         };
         logError(event.message, event.error, meta);
       } catch (error) {
-        // Silently fail - logging is non-critical
         console.debug("Error logging failed (non-critical):", error);
       }
     };
@@ -52,7 +48,6 @@ export default function AnalyticsListener() {
       try {
         logError("Unhandled Promise Rejection", event.reason);
       } catch (error) {
-        // Silently fail - logging is non-critical
         console.debug("Error logging failed (non-critical):", error);
       }
     };
