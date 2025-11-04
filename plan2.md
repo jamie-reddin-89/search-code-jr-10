@@ -2,7 +2,7 @@
 
 Owner: Admin (jayjay.r@outlook.com)
 Current version (Settings > About): 1.9.10
-Target version after implementation: 1.9.10
+Target version after implementation: 1.9.11
 
 Legend: [ ] pending • [x] complete • [~] partial
 
