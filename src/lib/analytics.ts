@@ -31,15 +31,20 @@ export async function trackEvent(
   path?: string,
   meta?: Record<string, any>
 ): Promise<void> {
+  let deviceId: string | null = null;
   try {
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const deviceId =
+    deviceId =
       typeof window !== "undefined"
         ? window.localStorage.getItem("device_id") || generateDeviceId()
         : null;
+
+    const { getCorrelationId, getDeviceInfo } = await import("@/lib/correlation");
+    const correlationId = getCorrelationId();
+    const deviceInfo = getDeviceInfo();
 
     const payload = [
       {
@@ -47,7 +52,7 @@ export async function trackEvent(
         device_id: deviceId,
         event_type: eventType,
         path: path || (typeof window !== "undefined" ? window.location.pathname : null),
-        meta: meta || null,
+        meta: { ...(meta || {}), correlationId, device: deviceInfo },
         timestamp: new Date().toISOString(),
       },
     ];
@@ -60,6 +65,9 @@ export async function trackEvent(
     // Enqueue to localStorage queue for later sync
     try {
       if (typeof window !== "undefined") {
+        const { getCorrelationId, getDeviceInfo } = await import("@/lib/correlation");
+        const correlationId = getCorrelationId();
+        const deviceInfo = getDeviceInfo();
         const key = "jr_user_events";
         const raw = window.localStorage.getItem(key);
         const list = raw ? JSON.parse(raw) : [];
@@ -70,7 +78,7 @@ export async function trackEvent(
           deviceId: deviceId || null,
           type: eventType,
           path: path || (typeof window !== "undefined" ? window.location.pathname : null),
-          meta: meta || null,
+          meta: { ...(meta || {}), correlationId, device: deviceInfo },
           ts: Date.now(),
         });
         window.localStorage.setItem(key, JSON.stringify(list));
