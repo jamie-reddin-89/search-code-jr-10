@@ -44,6 +44,7 @@ export default function AdminAppLogs() {
 
   useEffect(() => {
     loadLogs();
+    return subscribeToLogs();
   }, []);
 
   const loadLogs = async () => {
