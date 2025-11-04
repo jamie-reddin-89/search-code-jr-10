@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Star, StarOff, ExternalLink, Video, Clock, Wrench, Edit } from "lucide-react";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useUserRole } from "@/hooks/useUserRole";
-import { supabase } from "@/integrations/supabase/client";
+import { auth } from "@/services/supabase/auth";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -48,18 +48,18 @@ export function EnhancedErrorCard({
 }: EnhancedErrorCardProps) {
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const { isFavorite, toggleFavorite } = useFavorites(userId);
-  const { isAdmin } = useUserRole();
+  const { isAdmin, isModerator } = useUserRole();
   const [isOpen, setIsOpen] = useState(false);
   const favorite = isFavorite(systemName, code);
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await auth.getCurrentUser();
       setUserId(user?.id);
     };
     getUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = auth.onAuthStateChange((_event, session) => {
       setUserId(session?.user?.id);
     });
 
@@ -100,7 +100,7 @@ export function EnhancedErrorCard({
             <CardDescription className="mt-2 text-base">{meaning}</CardDescription>
           </div>
           <div className="flex gap-2">
-            {isAdmin && (
+            {(isAdmin || isModerator) && (
               <Button
                 variant="ghost"
                 size="icon"

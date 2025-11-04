@@ -1,4 +1,5 @@
-import { supabase } from "@/integrations/supabase/client";
+import { auth } from '@/services/supabase/auth';
+import { database } from '@/services/supabase/database';
 
 export interface AnalyticsEvent {
   id: string;
@@ -24,33 +25,86 @@ export interface AnalyticsStats {
 /**
  * Track an analytics event to Supabase
  */
+import { retryWithBackoff } from "./retry";
+
 export async function trackEvent(
   eventType: string,
   path?: string,
   meta?: Record<string, any>
 ): Promise<void> {
+  let deviceId: string | null = null;
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await auth.getCurrentUser();
 
-    const deviceId =
+    deviceId =
       typeof window !== "undefined"
         ? window.localStorage.getItem("device_id") || generateDeviceId()
         : null;
 
-    await supabase.from("app_analytics" as any).insert([
+    const { getCorrelationId, getDeviceInfo } = await import("@/lib/correlation");
+    const correlationId = getCorrelationId();
+    const deviceInfo = getDeviceInfo();
+
+    const payload = [
       {
         user_id: user?.id || null,
         device_id: deviceId,
         event_type: eventType,
-        path: path || window.location.pathname,
-        meta: meta || null,
+        path: path || (typeof window !== "undefined" ? window.location.pathname : null),
+        meta: { ...(meta || {}), correlationId, device: deviceInfo },
         timestamp: new Date().toISOString(),
       },
-    ]);
+    ];
+
+    // Try with retry/backoff
+    await retryWithBackoff(() => database.from("app_analytics").insert(payload), 3, 500);
   } catch (error) {
-    console.error("Failed to track event:", error);
+    console.error("Failed to track event after retries:", error);
+
+    // Enqueue to localStorage queue for later sync
+    try {
+      if (typeof window !== "undefined") {
+        const { getCorrelationId, getDeviceInfo } = await import("@/lib/correlation");
+        const correlationId = getCorrelationId();
+        const deviceInfo = getDeviceInfo();
+        const key = "jr_user_events";
+        const raw = window.localStorage.getItem(key);
+        const list = raw ? JSON.parse(raw) : [];
+        const user = await auth.getCurrentUser();
+        // store minimal event representation
+        list.push({
+          id: `evt_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+          userId: user?.id || null,
+          deviceId: deviceId || null,
+          type: eventType,
+          path: path || (typeof window !== "undefined" ? window.location.pathname : null),
+          meta: { ...(meta || {}), correlationId, device: deviceInfo },
+          ts: Date.now(),
+        });
+        window.localStorage.setItem(key, JSON.stringify(list));
+        // Attempt to register background sync if supported
+        try {
+          if ('serviceWorker' in navigator && 'SyncManager' in window) {
+            const reg = await navigator.serviceWorker.ready;
+            try {
+              await reg.sync.register('sync-analytics');
+            } catch (e) {
+              // registration failed (maybe unsupported), fallback to messaging SW to trigger immediate sync
+              if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage('trigger-sync');
+              }
+            }
+          } else if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+            // No SyncManager, ask SW to message clients to do sync
+            navigator.serviceWorker.controller.postMessage('trigger-sync');
+          }
+        } catch (err2) {
+          console.debug('Background sync registration failed:', err2);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to enqueue analytics event:", err);
+    }
   }
 }
 
@@ -75,8 +129,8 @@ export async function getAnalyticsStats(filters?: {
   eventType?: string;
 }): Promise<AnalyticsStats> {
   try {
-    let query = supabase
-      .from("app_analytics" as any)
+    let query = database
+      .from("app_analytics")
       .select("*")
       .order("timestamp", { ascending: false });
 
@@ -236,7 +290,7 @@ export async function trackErrorCodeView(
 export function subscribeToAnalytics(
   onNewEvent: (event: AnalyticsEvent) => void
 ): { unsubscribe: () => Promise<void> } {
-  const channel = supabase.channel("analytics-updates", {
+  const channel = database.channel("analytics-updates", {
     config: {
       broadcast: { self: true },
     },
@@ -257,7 +311,7 @@ export function subscribeToAnalytics(
 
   return {
     unsubscribe: async () => {
-      await supabase.removeChannel(channel);
+      await database.removeChannel(channel);
     },
   };
 }

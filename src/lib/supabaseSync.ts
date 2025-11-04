@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getEvents, getLogs } from "@/lib/tracking";
+import { retryWithBackoff } from "./retry";
 
 const LS_EVENTS = "jr_user_events";
 const LS_FIX_STEPS = "jr_fix_steps";
@@ -25,7 +26,7 @@ export async function syncEvents() {
         ...e.meta
       } || null,
     }));
-    await (supabase as any).from("app_analytics" as any).insert(payload);
+    await retryWithBackoff(() => (supabase as any).from("app_analytics" as any).insert(payload), 3, 500);
     writeLS(LS_EVENTS, []);
   } catch (err) {
     // keep in queue on failure - silently fail to prevent app crash
@@ -45,7 +46,7 @@ export async function syncLogs() {
       meta: l.meta || null,
       timestamp: new Date(l.ts).toISOString(),
     }));
-    await (supabase as any).from("app_logs" as any).insert(payload);
+    await retryWithBackoff(() => (supabase as any).from("app_logs" as any).insert(payload), 3, 500);
     // clear after successful insert
     localStorage.setItem("jr_app_logs", JSON.stringify([]));
   } catch (err) {

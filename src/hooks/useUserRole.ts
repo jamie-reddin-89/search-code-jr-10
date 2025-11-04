@@ -1,37 +1,38 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { auth } from "@/services/supabase/auth";
+import { database } from "@/services/supabase/database";
 
 export function useUserRole() {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState<"admin" | "moderator" | "user">("user");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function checkRole() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
+        const user = await auth.getCurrentUser();
         if (!user) {
-          setIsAdmin(false);
+          setRole("user");
           setLoading(false);
           return;
         }
 
-        const { data, error } = await (supabase as any)
-          .from("user_roles" as any)
+        const { data, error } = await database
+          .from("user_roles")
           .select("role")
           .eq("user_id", user.id)
-          .eq("role", "admin")
+          .limit(1)
           .maybeSingle();
 
         if (error) {
           console.error("Error checking role:", error);
-          setIsAdmin(false);
+          setRole("user");
         } else {
-          setIsAdmin(!!data);
+          const r = (data?.role as any) || "user";
+          setRole(r === "admin" || r === "moderator" ? r : "user");
         }
       } catch (error) {
         console.error("Error in checkRole:", error);
-        setIsAdmin(false);
+        setRole("user");
       } finally {
         setLoading(false);
       }
@@ -39,7 +40,7 @@ export function useUserRole() {
 
     checkRole();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+    const { data: { subscription } } = auth.onAuthStateChange(() => {
       checkRole();
     });
 
@@ -48,5 +49,7 @@ export function useUserRole() {
     };
   }, []);
 
-  return { isAdmin, loading };
+  const isAdmin = role === "admin";
+  const isModerator = role === "moderator";
+  return { role, isAdmin, isModerator, loading };
 }

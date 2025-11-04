@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Home, Plus, Edit, Trash2, Users, BarChart3, Wrench, ScrollText, FilePlus2, Package, Mail } from "lucide-react";
+import { Home, Plus, Edit, Trash2, Users, BarChart3, Wrench, ScrollText, FilePlus2, Package, Mail, Download, Upload } from "lucide-react";
 import TopRightControls from "@/components/TopRightControls";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -57,13 +57,14 @@ interface ErrorCode {
 }
 
 export default function Admin() {
-  const { isAdmin, loading } = useUserRole();
+  const { isAdmin, isModerator, loading } = useUserRole();
   const [errorCodes, setErrorCodes] = useState<ErrorCode[]>([]);
   const [editingCode, setEditingCode] = useState<ErrorCode | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [devices, setDevices] = useState<DeviceWithBrand[]>([]);
   const [devicesLoading, setDevicesLoading] = useState(true);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (isAdmin) {
@@ -171,7 +172,137 @@ export default function Admin() {
     }
   }
 
+  function convertErrorCodesToCSV(codes: ErrorCode[]): string {
+    const headers = [
+      "id",
+      "code",
+      "system_name",
+      "meaning",
+      "solution",
+      "difficulty",
+      "estimated_time",
+      "manual_url",
+      "video_url",
+      "related_codes"
+    ];
+    const escape = (val: any) => {
+      const s = val === null || val === undefined ? "" : String(val);
+      if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+      return s;
+    };
+    const rows = codes.map((c) => [
+      c.id,
+      c.code,
+      c.system_name,
+      c.meaning,
+      c.solution,
+      c.difficulty || "",
+      c.estimated_time || "",
+      c.manual_url || "",
+      c.video_url || "",
+      (c.related_codes || []).join("|")
+    ].map(escape).join(","));
+    return headers.join(",") + "\n" + rows.join("\n");
+  }
+
+  function parseCSV(content: string): Record<string, string>[] {
+    const lines = content.split(/\r?\n/).filter((l) => l.trim().length > 0);
+    if (lines.length === 0) return [];
+    const parseLine = (line: string): string[] => {
+      const result: string[] = [];
+      let cur = "";
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (inQuotes) {
+          if (ch === '"') {
+            if (line[i + 1] === '"') { cur += '"'; i++; } else { inQuotes = false; }
+          } else {
+            cur += ch;
+          }
+        } else {
+          if (ch === ',') { result.push(cur); cur = ""; }
+          else if (ch === '"') { inQuotes = true; }
+          else { cur += ch; }
+        }
+      }
+      result.push(cur);
+      return result;
+    };
+    const headers = parseLine(lines[0]).map((h) => h.trim());
+    return lines.slice(1).map((line) => {
+      const cols = parseLine(line);
+      const obj: Record<string, string> = {};
+      headers.forEach((h, idx) => { obj[h] = cols[idx] ?? ""; });
+      return obj;
+    });
+  }
+
+  function handleExportCSV() {
+    const csv = convertErrorCodesToCSV(errorCodes);
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `error-codes-${new Date().toISOString()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleImportCSVFile(file: File) {
+    try {
+      const text = await file.text();
+      const rows = parseCSV(text);
+      let upserted = 0;
+      for (const row of rows) {
+        const payload: any = {
+          code: row.code || row["Error Code"] || row["error_code"],
+          system_name: row.system_name || row["system"] || row["system_name"],
+          meaning: row.meaning || row["Meaning"],
+          solution: row.solution || row["Solution"],
+          difficulty: row.difficulty || null,
+          estimated_time: row.estimated_time || null,
+          manual_url: row.manual_url || null,
+          video_url: row.video_url || null,
+          related_codes: row.related_codes ? row.related_codes.split("|").map((s) => s.trim()).filter(Boolean) : null,
+        };
+        if (!payload.code || !payload.system_name) continue;
+        // Try update then insert
+        const { data: existing } = await (supabase as any)
+          .from("error_codes_db" as any)
+          .select("id")
+          .eq("code", payload.code)
+          .eq("system_name", payload.system_name)
+          .maybeSingle();
+        if (existing?.id) {
+          const { error } = await (supabase as any)
+            .from("error_codes_db" as any)
+            .update(payload)
+            .eq("id", existing.id);
+          if (!error) upserted++;
+        } else {
+          const { error } = await (supabase as any)
+            .from("error_codes_db" as any)
+            .insert([payload]);
+          if (!error) upserted++;
+        }
+      }
+      toast({ title: "Import complete", description: `${upserted} rows processed` });
+      loadErrorCodes();
+    } catch (e: any) {
+      toast({ title: "Import failed", description: e?.message ?? String(e), variant: "destructive" });
+    }
+  }
+
+  function handleImportCSV() {
+    if (fileInputRef.current) fileInputRef.current.click();
+  }
+
   async function handleDelete(id: string) {
+    if (!isAdmin) {
+      toast({ title: "Insufficient permissions", description: "Only admins can delete codes", variant: "destructive" });
+      return;
+    }
     if (!confirm("Are you sure you want to delete this error code?")) return;
 
     const { error } = await (supabase as any)
@@ -201,7 +332,7 @@ export default function Admin() {
     );
   }
 
-  if (!isAdmin) {
+  if (!(isAdmin || isModerator)) {
     return (
       <div className="page-container">
         <div className="flex flex-col items-center justify-center min-h-screen gap-4">
@@ -232,35 +363,38 @@ export default function Admin() {
       </header>
 
       <div className="button-container">
-        <Link to="/admin/users" className="nav-button flex items-center justify-center gap-2">
-          <Users size={20} />
-          Users
-        </Link>
-        <Link to="/admin/messages" className="nav-button flex items-center justify-center gap-2">
-          <Mail size={20} />
-          Messages
-        </Link>
-        <Link to="/admin/analytics" className="nav-button flex items-center justify-center gap-2">
-          <BarChart3 size={20} />
-          Analytics
-        </Link>
-        <Link to="/admin/fix-steps" className="nav-button flex items-center justify-center gap-2">
-          <Wrench size={20} />
-          Fix Steps
-        </Link>
-        <Link to="/admin/app-logs" className="nav-button flex items-center justify-center gap-2">
-          <ScrollText size={20} />
-          App Logs
-        </Link>
-        <Link to="/admin/add-device" className="nav-button flex items-center justify-center gap-2">
-          <Package size={20} />
-          Add Device
-        </Link>
+        {isAdmin && (
+          <>
+            <Link to="/admin/users" className="nav-button flex items-center justify-center gap-2">
+              <Users size={20} />
+              Users
+            </Link>
+            <Link to="/admin/messages" className="nav-button flex items-center justify-center gap-2">
+              <Mail size={20} />
+              Messages
+            </Link>
+            <Link to="/admin/analytics" className="nav-button flex items-center justify-center gap-2">
+              <BarChart3 size={20} />
+              Analytics
+            </Link>
+            <Link to="/admin/fix-steps" className="nav-button flex items-center justify-center gap-2">
+              <Wrench size={20} />
+              Fix Steps
+            </Link>
+            <Link to="/admin/app-logs" className="nav-button flex items-center justify-center gap-2">
+              <ScrollText size={20} />
+              App Logs
+            </Link>
+            <Link to="/admin/add-device" className="nav-button flex items-center justify-center gap-2">
+              <Package size={20} />
+              Add Device
+            </Link>
+          </>
+        )}
         <Link to="/admin/add-error-info" className="nav-button flex items-center justify-center gap-2">
           <FilePlus2 size={20} />
           Add Error Info
         </Link>
-        {/* Device quick-links removed from Admin dashboard — these belong on the public main UI to avoid cluttering admin controls */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <button className="nav-button flex items-center justify-center gap-2" onClick={() => setEditingCode(null)}>
@@ -281,6 +415,23 @@ export default function Admin() {
             />
           </DialogContent>
         </Dialog>
+        <button className="nav-button flex items-center justify-center gap-2" onClick={handleExportCSV}>
+          <Download size={20} /> Export CSV
+        </button>
+        <button className="nav-button flex items-center justify-center gap-2" onClick={handleImportCSV}>
+          <Upload size={20} /> Import CSV
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv,text/csv"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) handleImportCSVFile(f);
+            e.currentTarget.value = "";
+          }}
+        />
       </div>
 
       <div className="w-full max-w-xl mt-8 grid gap-4">
@@ -315,14 +466,16 @@ export default function Admin() {
               >
                 <Edit className="h-4 w-4" />
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDelete(code.id)}
-                aria-label="Delete error code"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              {isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleDelete(code.id)}
+                  aria-label="Delete error code"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         ))}

@@ -1,8 +1,8 @@
 # Implementation Plan (Admin + App-wide Enhancements)
 
 Owner: Admin (jayjay.r@outlook.com)
-Current version (Settings > About): 1.9.8
-Target version after implementation: 1.9.8
+Current version (Settings > About): 1.9.16
+Target version after implementation: 1.9.16
 
 Legend: [ ] pending • [x] complete • [~] partial
 
@@ -44,10 +44,10 @@ Phase 4 — Analytics capture + Admin analytics
 - [~] Optional: record user_sessions/user_activity on login/logout/page views
 
 Phase 5 — UI consistency, themes, scrollbars
-- [ ] Shared classes exist (.nav-button, .home-button, .page-container) (src/index.css)
-- [ ] Audit pages to ensure consistent usage of bg-background/text-foreground/border
-- [ ] Extend global CSS to hide visual scrollbars while allowing scroll for body and scroll regions
-- [ ] Verify light: light background + dark text; dark: dark background + light text; fix outliers
+- [x] Shared classes exist (.nav-button, .home-button, .page-container) (src/index.css)
+- [x] Audit pages to ensure consistent usage of bg-background/text-foreground/border
+- [x] Extend global CSS to hide visual scrollbars while allowing scroll for body and scroll regions
+- [x] Verify light: light background + dark text; dark: dark background + light text; fix outliers
 
 Phase 6 — Dynamic device subpages and per-model codes
 - [x] Add route /device/:slug in src/App.tsx
@@ -57,23 +57,23 @@ Phase 6 — Dynamic device subpages and per-model codes
 
 Phase 7 — Settings improvements
 General tab (src/components/Settings.tsx)
-- [ ] Wrap in bordered, rounded container
-- [ ] Add Save button to persist the group (offlineMode, notifications, tooltips, slimLineMode) at once
-- [ ] Add suggested settings: default landing model, units (°C/°F, currency), language, data saver, confirm-on-delete
+- [x] Wrap in bordered, rounded container
+- [x] Add Save button to persist the group (offlineMode, notifications, tooltips, slimLineMode) at once
+- [x] Add suggested settings: default landing model, units (°C/°F, currency), language, data saver, confirm-on-delete
 
 Account tab
-- [ ] Improve layout with sections (Profile, Security, Data); responsive 1–2 cols; align buttons
+- [x] Improve layout with sections (Profile, Security, Data); responsive 1–2 cols; align buttons
 
 About tab
-- [ ] Remove “Contact: {email}” line
-- [ ] Show “Created by: Jamie Reddin, Version: 1.8.5” on one row
-- [ ] Move Contact button to top row actions near title
+- [x] Remove “Contact: {email}” line
+- [x] Show “Created by: Jamie Reddin, Version: 1.9.10” on one row
+- [x] Move Contact button to top row actions near title
 
 Phase 8 — Messages admin page
-- [ ] Edge function contact-send sends email; can store to contact_messages with service role
-- [ ] Create src/pages/AdminMessages.tsx to list contact_messages with filters and details
-- [ ] Add route /admin/messages and nav button in Admin dashboard (src/pages/Admin.tsx)
-- [ ] Add realtime subscription on contact_messages to live-update list
+- [x] Edge function contact-send sends email; can store to contact_messages with service role
+- [x] Create src/pages/AdminMessages.tsx to list contact_messages with filters and details
+- [x] Add route /admin/messages and nav button in Admin dashboard (src/pages/Admin.tsx)
+- [x] Add realtime subscription on contact_messages to live-update list
 
 Phase 9 — Integrations (optional but recommended)
 - [ ] Connect Supabase MCP for DB/auth management and RLS reviews
@@ -82,16 +82,16 @@ Phase 9 — Integrations (optional but recommended)
 - [ ] Connect Zapier to route contact_messages to Slack/Email
 
 Phase 10 — Performance and quality
-- [ ] Code-split heavy charts/pages; lazy-load
-- [ ] Add retry/backoff for logging/analytics writes
-- [ ] Add PWA SW for offline caching of codes and background sync
-- [ ] Fuzzy search in error_codes_db; CSV import/export of error codes
-- [ ] Granular RBAC (moderator scope)
-- [ ] Add correlation ID to logs/analytics; include device info in analytics meta
+- [x] Code-split heavy charts/pages; lazy-load — completed
+- [x] Add retry/backoff for logging/analytics writes
+- [x] Add PWA SW for offline caching of codes and background sync
+- [x] Fuzzy search in error_codes_db; CSV import/export of error codes
+- [x] Granular RBAC (moderator scope)
+- [x] Add correlation ID to logs/analytics; include device info in analytics meta
 
 Release Tasks
-- [x] Update Settings > About version text to 1.9.7
-- [ ] Smoke test all admin pages and public views (light/dark)
+- [x] Update Settings > About version text to 1.9.16
+- [x] Smoke test all admin pages and public views (light/dark)
 - [ ] Verify RLS and permissions with a non-admin account
 
 SQL (DDL)
