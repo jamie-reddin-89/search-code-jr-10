@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { trackEvent } from "@/lib/tracking";
+import { trackSearch as trackAnalyticsSearch } from "@/lib/analytics";
 
 export const useAnalytics = () => {
   const trackSearch = async (systemName: string, errorCode: string, userId?: string) => {
@@ -10,13 +10,11 @@ export const useAnalytics = () => {
         user_id: userId || null,
       });
     } catch (error) {
-      // Silently fail - analytics is non-critical
       console.debug("Search analytics tracking failed (non-critical):", error);
     }
     try {
-      await trackEvent("search", { systemName, errorCode }, undefined, userId);
+      await trackAnalyticsSearch(errorCode, systemName);
     } catch (error) {
-      // Silently fail - event tracking is non-critical
       console.debug("Event tracking failed (non-critical):", error);
     }
   };

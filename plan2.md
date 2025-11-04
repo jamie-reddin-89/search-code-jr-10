@@ -1,8 +1,8 @@
 # Implementation Plan (Admin + App-wide Enhancements)
 
 Owner: Admin (jayjay.r@outlook.com)
-Current version (Settings > About): 1.9.6
-Target version after implementation: 1.9.6
+Current version (Settings > About): 1.9.8
+Target version after implementation: 1.9.8
 
 Legend: [ ] pending • [x] complete • [~] partial
 
@@ -36,11 +36,12 @@ Phase 3 — App-wide logging with live updates
 - [x] Optional: Add React ErrorBoundary to capture render errors and logError
 
 Phase 4 — Analytics capture + Admin analytics
-- [ ] app_analytics + search_analytics tables available (types present)
-- [ ] Switch AnalyticsListener to lib/analytics.trackEvent/trackPageView/trackClick (src/components/AnalyticsListener.tsx)
-- [ ] Search tracking writes to search_analytics (present) and should also call lib/analytics.trackEvent("search") (src/hooks/useAnalytics.ts) — verify
-- [ ] Ensure AdminAnalytics uses getAnalyticsStats (already) and events flow end-to-end
-- [ ] Optional: record user_sessions/user_activity on login/logout/page views
+- [x] app_analytics + search_analytics tables available (types present)
+- [x] Switch AnalyticsListener to lib/analytics.trackEvent/trackPageView/trackClick (src/components/AnalyticsListener.tsx)
+- [x] Search tracking writes to search_analytics (present) and should also call lib/analytics.trackEvent("search") (src/hooks/useAnalytics.ts) — verify
+- [x] Ensure AdminAnalytics uses getAnalyticsStats (already) and events flow end-to-end
+- [x] Added real-time subscriptions (subscribeToAnalytics) and live events display in AdminAnalytics
+- [~] Optional: record user_sessions/user_activity on login/logout/page views
 
 Phase 5 — UI consistency, themes, scrollbars
 - [ ] Shared classes exist (.nav-button, .home-button, .page-container) (src/index.css)
@@ -89,7 +90,7 @@ Phase 10 — Performance and quality
 - [ ] Add correlation ID to logs/analytics; include device info in analytics meta
 
 Release Tasks
-- [x] Update Settings > About version text to 1.9.2
+- [x] Update Settings > About version text to 1.9.7
 - [ ] Smoke test all admin pages and public views (light/dark)
 - [ ] Verify RLS and permissions with a non-admin account
 

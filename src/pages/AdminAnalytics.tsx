@@ -18,7 +18,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { getAnalyticsStats, type AnalyticsStats } from "@/lib/analytics";
+import { getAnalyticsStats, subscribeToAnalytics, type AnalyticsStats, type AnalyticsEvent } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 
 const COLORS = [
@@ -37,10 +37,32 @@ export default function AdminAnalytics() {
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [recentEvents, setRecentEvents] = useState<AnalyticsEvent[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     loadAnalytics();
+
+    const subscription = subscribeToAnalytics((newEvent: AnalyticsEvent) => {
+      setRecentEvents((prev) => {
+        const updated = [newEvent, ...prev].slice(0, 100);
+        return updated;
+      });
+
+      if (!startDate && !endDate) {
+        setStats((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            totalPageViews: prev.totalPageViews + 1,
+          };
+        });
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const loadAnalytics = async () => {
@@ -57,6 +79,7 @@ export default function AdminAnalytics() {
 
       const analyticsData = await getAnalyticsStats(filters);
       setStats(analyticsData);
+      setRecentEvents([]);
     } catch (error: any) {
       console.error("Error loading analytics:", error);
       toast({
@@ -282,6 +305,41 @@ export default function AdminAnalytics() {
                     <div key={i} className="flex justify-between items-center p-2 border rounded">
                       <span className="text-sm font-mono">{user.userId.slice(0, 8)}...</span>
                       <span className="text-sm text-muted-foreground">{user.count} events</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Real-time Recent Events */}
+            {recentEvents.length > 0 && (
+              <div className="border rounded p-4 bg-muted/30">
+                <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                  <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  Recent Events (Live)
+                </h2>
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {recentEvents.slice(0, 20).map((event) => (
+                    <div
+                      key={event.id}
+                      className="p-2 border rounded text-sm bg-background hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-1">
+                          <span className="font-medium">{event.event_type}</span>
+                          {event.path && (
+                            <div className="text-xs text-muted-foreground truncate mt-1">{event.path}</div>
+                          )}
+                          {event.meta && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {JSON.stringify(event.meta).substring(0, 100)}
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                          {new Date(event.timestamp).toLocaleTimeString()}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
